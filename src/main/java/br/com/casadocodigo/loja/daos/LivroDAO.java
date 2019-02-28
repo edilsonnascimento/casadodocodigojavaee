@@ -1,5 +1,7 @@
 package br.com.casadocodigo.loja.daos;
 
+import java.util.List;
+
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -14,6 +16,10 @@ public class LivroDAO {
 	
 	public void salvar(Livro livro) {
 		manager.persist(livro);
+	}
+
+	public List<Livro> todosLivros() {
+		return manager.createQuery("SELECT DISTINCT(l) FROM Livro l JOIN FETCH l.autores",Livro.class).getResultList();
 	}
 
 }

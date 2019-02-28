@@ -29,6 +29,10 @@ public class Livro {
 	@ManyToMany
 	private List<Autor> autores = new ArrayList<Autor>();
 	
+	public Livro() {
+		
+	}
+	
 	public String getTitulo() {
 		return titulo;
 	}

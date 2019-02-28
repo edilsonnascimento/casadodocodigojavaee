@@ -14,7 +14,7 @@ public class Autor {
 
 	private String nome;
 
-	private Autor() {
+	public Autor() {
 	};
 
 	public Autor(Integer id) {

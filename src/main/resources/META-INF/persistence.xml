@@ -12,12 +12,18 @@
 		<!-- java transaction api || JNDI -->
 		<jta-data-source>java:jboss/datasources/casadocodigoDS</jta-data-source>
 		
+		<class>br.com.casadocodigo.loja.models.Autor</class>
+		<class>br.com.casadocodigo.loja.models.Livro</class>
+		
 		<properties>
+			<!-- Configuracoes especificas do Hibernate -->
+			<property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5InnoDBDialect" />			
 			<property name="hibernate.hbm2ddl.auto" value="update" />
 			<property name="hibernate.show_sql" value="true" />
-			<property name="hibernate.format_sql" value="true" />
-			<property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5InnoDBDialect" />
+			<property name="hibernate.format_sql" value="true"/>
+
 		</properties>
+		
 		
 	</persistence-unit>
 	

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.enterprise.context.RequestScoped;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -27,16 +29,24 @@ public class AdminLivrosBean {
 	
 	private List<Integer> autoresId = new ArrayList<Integer>();
 	
-	public void adiciona() {
+	public String adiciona() {
 		
 		for (Integer autorId : autoresId) {
 			livro.getAutores().add(new Autor(autorId));
 		}
 		
 		livroDao.salvar(livro);
-		System.out.println("Livro" + getLivro() + " salvo com sucesso!!");
+		
+		FacesContext.getCurrentInstance().getExternalContext()
+		.getFlash().setKeepMessages(true);
+		
+		FacesContext.getCurrentInstance()
+		.addMessage(null, new FacesMessage("LIVRO CADASTRADO COM SUCESSO !!!"));
+		
 		this.livro = new Livro();
 		this.autoresId = new ArrayList<Integer>();
+		
+		return "/livro/lista?faces-redirect=true";
 	}
 
 	public Livro getLivro() {
