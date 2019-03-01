@@ -1,0 +1,171 @@
+03 - Validando e Exibindo Mensagens no Formulário
+
+01 - Usando o escopo de Flash
+
+Indo um pouco mais a fundo no Flash Scope, ele consegue aumentar o tempo de vida de um objeto usando a sessão do usuário, adicionando no primeiro request o objeto na sessão e ao fim do segundo request o próprio JSF se encarrega de remover o objeto da sessão. Para fazer uso do Flash Scope, precisamos setar uma informação no contexto do JSF. Dentro do método salvar, faremos o seguinte:
+
+    // chamada do livroDao.salvar acima
+    FacesContext.getCurrentInstance().getExternalContext()
+        .getFlash().setKeepMessages(true); // Aqui estamos ativando o FlashScope
+    FacesContext.getCurrentInstance()
+        .addMessage(null, new FacesMessage("Livro cadastrado com sucesso!"));
+
+Utilizado para enviar mensagens, de uma tela para outra.
+
+02 - Conhecendo o novo escopo de Flash
+
+Mostrando uma mensagem de salvo cadastro de livro com sucesso.
+
+- Alterar o método adiciona do BEN de Livro
+
+public String adiciona() {	
+	for (Integer autorId : autoresId) {
+		livro.getAutores().add(new Autor(autorId));
+	}	
+	livroDao.salvar(livro);
+	
+	FacesContext.getCurrentInstance().getExternalContext()
+	.getFlash().setKeepMessages(true);
+	
+	FacesContext.getCurrentInstance()
+	.addMessage(null, new FacesMessage("LIVRO CADASTRADO COM SUCESSO !!!"));
+	
+	this.livro = new Livro();
+	this.autoresId = new ArrayList<Integer>();
+	
+	return "/livro/lista?faces-redirect=true";
+}
+
+- Adicionar na viwer a tag <h:messages />, para recebe a mensagem do FacesContext.
+
+04 - Produzindo o FacesContext
+
+Garante que o FacesContext ao ser utilizado já está instanciado apenas injetando o objeto
+
+
+- Criar a classe FacesContextProducer no pacote conf
+
+br.com.casadocodigo.loja.conf
+
+public class FacesContextProducer{
+
+    @RequestScoped
+    @Produces
+    public FacesContext getFacesContext(){
+            return FacesContext.getCurrentInstance();
+    }
+
+}
+
+- Injetar no ben
+
+public class AdminLivrosBean {
+    @Inject
+    private FacesContext context;
+    // restante de código
+}
+
+05 - Criando o produtor de FacesContext
+Criado no exercío anterior.
+
+06 - Validando nosso formulário
+
+Somente por tags na viwer.
+
+<h:messages /> para mostrar a mensagens de validação
+
+required="" se o campo é obrigatório ou não.
+
+requiredMessage mensagem para exibir na tela.
+
+<h:inputText value="#{adminLivrosBean.livro.titulo}" required="true" 
+requiredMessage="O Título é um campo obrigatório!" />
+
+<f:validateLongRange minimum="80"/> campo deve ter no mínimo 80
+
+	<div>
+		<h:outputLabel value="Número de Páginas" />
+		<h:inputText value="#{adminLivrosBean.livro.numeroPaginas}"
+			required="true" requiredMessage="O campo Número de Páginas é obrigatório">
+			<f:validateLongRange minimum="80"/>
+		</h:inputText>
+	</div>
+
+
+07 - Message Bundles
+
+Utilizandoo BinValitation, altera as mensagens padrẽos de validação, sem necessitar de alterar campo a campo das viwers.
+
+- Criar arquivo jsf_messages.properties no diretório /src/main/resources.
+- Infomar o conteúdo abaixo:
+javax.faces.component.UIInput.REQUIRED={0}: Campo Obrigato\u0301rio
+javax.faces.converter.IntegerConverter.INTEGER="{2}" deve ser um número inteiro
+javax.faces.converter.BigDecimalConverter.DECIMAL="{2}" deve ser um valor separado apenas por "."
+
+- Adicionar o arquivo jsf_messagens no faces-config.xml
+
+        <application>
+         <message-bundle>jsf_messages</message-bundle>
+        </application>
+
+- Retirar o parâmetro requiredMessage do viwer
+
+08 - Validação do formulário
+Implementado no exercicio anterior.
+
+09 - Usando a Bean Validation
+
+- Anotar na classe entidade as notações de validaçõe nos atributos.
+@Entity
+public class Livro {
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
+	private Integer id;
+	
+    @NotBlank
+	private String titulo;
+	
+	@Lob
+	@Length(min=10)
+	@NotBlank
+	private String descricao;
+	
+	@DecimalMin("20")
+	private BigDecimal preco;
+	
+	@Min(50)
+	private Integer numeroPaginas;
+	
+	@ManyToMany
+	@Size(min=1)
+	@NotNull
+	private List<Autor> autores = new ArrayList<Autor>();
+///
+}
+
+- Adicionar o comando javax.faces.validator.BeanValidator.MESSAGE={0} no jsf_messages.properties
+
+- Alterado a viwer para mostrar a mensagem campo a campo e identificando o campo om o atributo "id"
+id="titulo" />
+<h:message for="titulo" />
+Exemplo:
+<div>
+		<h:outputLabel value="Título" />
+		<h:inputText 
+			value="#{adminLivrosBean.livro.titulo}"
+			required="true" id="titulo"/>				
+			<h:message for="titulo" />
+	</div>
+
+
+10 - Utilizando a Bean Validation para uma validação baseada na classe
+Já implmentado no exercício anterior.
+
+
+
+
+
+
+
+
+
+

@@ -19,7 +19,9 @@ public class LivroDAO {
 	}
 
 	public List<Livro> todosLivros() {
-		return manager.createQuery("SELECT DISTINCT(l) FROM Livro l JOIN FETCH l.autores",Livro.class).getResultList();
+		return manager.createQuery("SELECT DISTINCT(l) "
+				                 + "FROM Livro l JOIN FETCH l.autores", Livro.class)
+				      .getResultList();
 	}
 
 }

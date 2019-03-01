@@ -26,6 +26,9 @@ public class AdminLivrosBean {
 	
 	@Inject
 	private AutorDAO autorDao;
+
+	@Inject
+	private FacesContext context;
 	
 	private List<Integer> autoresId = new ArrayList<Integer>();
 	
@@ -37,10 +40,10 @@ public class AdminLivrosBean {
 		
 		livroDao.salvar(livro);
 		
-		FacesContext.getCurrentInstance().getExternalContext()
+		context.getCurrentInstance().getExternalContext()
 		.getFlash().setKeepMessages(true);
 		
-		FacesContext.getCurrentInstance()
+		context.getCurrentInstance()
 		.addMessage(null, new FacesMessage("LIVRO CADASTRADO COM SUCESSO !!!"));
 		
 		this.livro = new Livro();
