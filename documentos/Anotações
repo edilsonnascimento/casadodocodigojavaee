@@ -1,173 +1,329 @@
-04 - Data de Publicação e Converters
+05 -  Adicionando e Exibindo a Capa do Livro
 
-01 - Adicionando a Data de Publicação
 
-- Adicionar campo data no model do livro, mapeado para JPA para mostrar somentea  data.
+01 - Salvando a Imagem no Servidor
+Salvando qualquer tipo de arquivo.
+
+- Criado campo no JSF, viwer, para enviar arquivo para o servidor.
+
+	<div>
+		<h:outputLabel value="Capa do Livro" />
+		<h:inputFile value="#{adminLivrosBean.capaLivro}" id="capaLivro" />
+		<h:message for="capaLivro" />
+	</div>
+- Adicionado o tipo de arquivo que está sendo enviado no request
+
+<h:form enctype="multipart/form-data">
+
+- Criado o campo capaLivo no MannagerBean, do tipo Part(aqruivo do Javaee 7)
+	private Part capaLivro;
+
+- Gravado arquivo em disco, pelo comando write
+	capaLivro.write("/home/edilson/workspace/casadodocodigojavaee/documentos/" + capaLivro.getSubmittedFileName());
+
+
+02 - Criando o campo para seleção de arquivo
+
+<h:form enctype="multipart/form-data">
+    <!-- Os demais campos continuam aqui! -->
+    <div>
+        <h:outputLabel value="Capa do Livro" />
+        <h:inputFile value="#{adminLivrosBean.capaLivro}" id="capaLivro" />
+        <h:message for="capaLivro" />
+    </div>
+    <h:commandButton value="Cadastrar" action="#{adminLivrosBean.salvar}" />
+</h:form>
+
+
+03 - Enviando arquivos no JavaEE 
+Como ficou facilitado o upload de arquivos no JavaEE 7?
+
+Através do componente <h:inputFile> no JSF e do objeto Part que já encapsula a complexidade de receber o arquivo e transferi-lo para o disco. Agora ficou muito mais simples, bastando apenas chamar o método write() do objeto Part.
+
+04 - Recebendo o arquivo no Bean e salvando no disco
+
+import javax.servlet.http.Part;
+public class AdminLivrosBean {	
+	private Livro livro = new Livro();	
+	@Inject
+	private LivroDAO livroDao;	
+	@Inject
+	private AutorDAO autorDao;
+	@Inject
+	private FacesContext context;	
+	private Part capaLivro;	
+	public String adiciona() throws IOException {
+		livroDao.salvar(livro);		
+		capaLivro.write("/home/edilson/workspace/casadodocodigojavaee/documentos/" + capaLivro.getSubmittedFileName());
+//...
+}
+//...
+	public Part getCapaLivro() {
+		return capaLivro;
+	}
+	public void setCapaLivro(Part capaLivro) {
+		this.capaLivro = capaLivro;
+	}
+}
+
+05 - Salvando o Path da Capa do Livro
+Criar uma classe de infrainstrutura que salve os arquivos no banco de dados. e apenas retorne o caminho para ser salvo no Livro.
+
+06 - Alterando o Livro para salvar a capa
+
+- Criar campo capaPath para armazenar o caminho onde o arquivo será salvo
+
 @Entity
 public class Livro {
-///outros
-	@Temporal(TemporalType.DATE)
-	private Calendar dataPublicacao = Calendar.getInstance();
-//outros 
-	public Calendar getDataPublicacao() {
-		return dataPublicacao;
+	//...
+	private String capaPath;
+	//...
+	public String getCapaPath() {
+		return capaPath;
 	}
-	public void setDataPublicacao(Calendar dataPublicacao) {
-		this.dataPublicacao = dataPublicacao;
+
+	public void setCapaPath(String capaPath) {
+		this.capaPath = capaPath;
 	}
-- Adicionar campo na viewer mostrando mensagem de validação, converter para o dd/mm/yyy e buscando o ".time" final informa que usaremos um java.util.Date, pois nosso conversor f:convertDateTime só trabalha com Date.
+}
 
-<div>
-	<h:outputLabel value="Data de Publicação" />
-	<h:inputText 
-			value="#{adminLivrosBean.livro.dataPublicacao.time}"
-	        id="dataPublicacao">
-	    	<f:convertDateTime pattern="dd/MM/yyyy"/>
-	</h:inputText>
-	<h:message for="dataPublicacao" />
-</div>
+07 - Recebendo o arquivo no AdminLivrosBean
+Recebe na variável capaLivro e armazena em disco pelo camando wirite, ter um infraestrutura que armane esse arquivo no servidor.
+FileSaver fileSaver = new FileSaver();
+livro.setCapaPath(fileSaver.write(capaLivro, "docuementos"));
 
 
-02 - Guardando a data de publicação do Livro
-Implmentado anteriormente.
-
-03 - Cadastrando a data de publicação
-Já implmentado
-
-04 - Criando nosso próprio Converter
-
-Criando classe para converter a data calender para o padrão e timzone desejado, sem tratar isso na viwer.
-
-- Criar classe para converter a data de string que vem da viwer e objeto quando vem do manager bean.
-
-
-05 - Criando um conversor para nossa data
-
-@FacesConverter(forClass=Calendar.class) // converte da viwer para o mannageBean.
-public class CalendarConverter implements Converter{
+08 - Criando o método write do FileSaver
+Criar arquivo de infra estrutura para gravar arquivo no servidor e retonar o path de onde o arquivo foi salvo.
+public class FileSaver {
 	
-	private DateTimeConverter converter = new DateTimeConverter(); //objeto do Faces que trata conversão de data.
-
-	public CalendarConverter() {
-		converter.setPattern("dd/MM/yyyy"); // seta com o formatado desejado
-		converter.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo")); // seta timezone da região.
+	private static final String SERVER_PATH = "/home/edilson/workspace/casadodocodigojavaee/";	
+	public String write(Part arquivo, String path) {
+		String relativePath = path + "/" + arquivo.getSubmittedFileName();
+		try {
+			arquivo.write(SERVER_PATH + relativePath);			
+			return relativePath;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
+}
 
+
+09 - Obtendo a Capa do FileSystem
+
+Criar uma Classe que acesse o arquivo no servidor, pelo Servilet, atendo as requisições, request de uma url 
+http://algma cosia/file/caminho + nome do arquivo.
+
+10 - Criando coluna para a Capa do Livro
+Coluna que mostra uma imagem tendo como fonte(scr) a classe request.
+<h:column>
+	<f:facet name="header">Capa</f:facet>
+	<img src="#{request.contextPath}/file/#{livro.capaPath}" 
+			  height="30%" alt="#{livro.titulo}"/>
+</h:column>
+
+11 - Criando o Servlet de File
+
+1 - Criar uma classe FileServlet que herde de HttpServlet.
+public class FileServlet extends HttpServlet{
+}
+
+2 - Sobrescrever o método service
+public class FileServlet extends HttpServlet{
 	@Override
-	public Object getAsObject(FacesContext context, UIComponent component, String dataTexto) {
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException 	}
+}
 
-		Calendar calendar = Calendar.getInstance(); // instancia uma classe calender.
+3 - Anotar a classe com WebServlet e leia as request de "file"
+
+@WebServlet("/file/*")
+public class FileServlet extends HttpServlet{
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	}
+}
+
+4 - Pegue o nome e diretório onde está o arquivo recebido pela request.
+
+Utilizar o métod getRequestURI() do req vindo por parâmetro, que quebra a request em um array pelo "/file/" e retorna o [1], parte posição a diretia do arraqui.
+Exemplo: request http://localhost:8080/casadocodigo/file/documentos/BigData.png
+split = [ http://localhost:8080/casadocodigo, /file/, documentos/BigData.png ]
+path = documentos/BigData.png
+
+@WebServlet("/file/*")
+public class FileServlet extends HttpServlet{
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
+		String path = req.getRequestURI().split("/file/")[1];
+	}
+}
+
+5 - Setar parâmetros do browser para exibir arquivos.
+
+# Um dos parâmetros é o ContetType para isso deve:
+
+- Cria a fonte(source) com o caminho real do arquivo no servidor.
+
+@WebServlet("/file/*")
+public class FileServlet extends HttpServlet{
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String path = req.getRequestURI().split("/file/")[1];		
+		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
+	}
+}
+
+- Instanciar o FileNameMap, para coletar as informações do arquivo.
+@WebServlet("/file/*")
+public class FileServlet extends HttpServlet{
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
+		String path = req.getRequestURI().split("/file/")[1];		
+		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
+		FileNameMap fileNameMap = URLConnection.getFileNameMap(); 
+	}
+}
+
+- Coletar o contentType do aruivo pela classe FileNameMap.
+@WebServlet("/file/*")
+public class FileServlet extends HttpServlet{
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
+		String path = req.getRequestURI().split("/file/")[1];		
+		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
+		FileNameMap fileNameMap = URLConnection.getFileNameMap();
+		String contentTypeFor = fileNameMap.getContentTypeFor("file:" + source);
+	}
+}
+
+- Setar o contentType
+@WebServlet("/file/*")
+public class FileServlet extends HttpServlet{
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
+		String path = req.getRequestURI().split("/file/")[1];		
+		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
+		FileNameMap fileNameMap = URLConnection.getFileNameMap();
+		String contentTypeFor = fileNameMap.getContentTypeFor("file:" + source);
+
+		resp.setContentType(contentTypeFor);
+	}
+}
+
+# Setar o Header com o tamanho do arquivo
+@WebServlet("/file/*")
+public class FileServlet extends HttpServlet{
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
+		String path = req.getRequestURI().split("/file/")[1];		
+		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
+		FileNameMap fileNameMap = URLConnection.getFileNameMap();
+		String contentTypeFor = fileNameMap.getContentTypeFor("file:" + source);
+
+		resp.setContentType(contentTypeFor);
+		resp.setHeader("Content-Length", String.valueOf(Files.size(source)));
+	}
+}
+
+# Setar o Header com o nome do arquivo que será exibido.
+@WebServlet("/file/*")
+public class FileServlet extends HttpServlet{
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
+		String path = req.getRequestURI().split("/file/")[1];		
+		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
+		FileNameMap fileNameMap = URLConnection.getFileNameMap();
+		String contentTypeFor = fileNameMap.getContentTypeFor("file:" + source);
+
+		resp.setContentType(contentTypeFor);
+		resp.setHeader("Content-Length", String.valueOf(Files.size(source)));
+		resp.setHeader("Content-Disposition", "filename=\""+source.getFileName().toString() + "\"");
+	}
+}
+
+# Restar o response para ter serteza que ele não tem nem uma informação anterior.
+@WebServlet("/file/*")
+public class FileServlet extends HttpServlet{
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
+		String path = req.getRequestURI().split("/file/")[1];		
+		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
+		FileNameMap fileNameMap = URLConnection.getFileNameMap();
+		String contentTypeFor = fileNameMap.getContentTypeFor("file:" + source);
+
+		resp.reset();
+		resp.setContentType(contentTypeFor);
+		resp.setHeader("Content-Length", String.valueOf(Files.size(source)));
+		resp.setHeader("Content-Disposition", "filename=\""+source.getFileName().toString() + "\"");
+	}
+}
+
+# Criar método transfer() na classe FileSaver.
+Esse método é resposável por transferir arquivos do Servidor para o browser do cliente.
+
+- Recebe por parâmetro o caminho do arquivo no servidor(Path) e a saída para o browser OutputStream). 
+
+public class FileSaver {
+//...
+public static void transfer(Path source, OutputStream outputStream) {
 		
-		Date data = (Date) converter.getAsObject(context, component, dataTexto); // converte de texto para Date, date é o padrão do JSF.
-        calendar.setTime(data); // converte de Date para Calender, tipo do campo da classe livro.
-		return calendar;
-	}
-
-	@Override
-	public String getAsString(FacesContext context, UIComponent component, Object dataObject) {
-		
-		if(dataObject == null)
-			return null;
-		
-		Calendar calendar = (Calendar) dataObject; // converte para Calender
-		return converter.getAsString(context, component, calendar.getTime()); // Date do Calender converte para texto, já com os sets do construtor.
 	}
 }
 
-- Retirado as tags da vier de tratamento de data, ficando o código mais limpo
-
-<div>
-	<h:outputLabel value="Data de Publicação" />
-	<h:inputText value="#{adminLivrosBean.livro.dataPublicacao}"
-	        id="dataPublicacao" />
-	<h:message for="dataPublicacao" />	
-</div>
-
-
-
-06 - Convertendo datas
-
-Porque tivemos que criar um conversor para Calendar se já existe um para Date?
-
-Porque o conversor de Date trata apenas do tipo java.util.Date e queremos usar o tipo java.util.Calendar por ser mais novo e possuir mais recursos de manipulação de datas. Com um conversor próprio de Calendar evitamos fazer parse em todo local do sistema, tornando o código mais limpo e conciso.
-
-07 - Convertendo o Autor
-
-Criar um conversor string para o objeto autor, assim como foi feito com a data de string para o objeto data.
-
-08 - Criando o conversor para Autor
-
-- Criar classe conversora
-
-@FacesConverter("autorConverter") // IDENTIFICAÇÃO PARA USAR NA VIWER JSF.
-public class AutorConverter implements Converter{	
-	private Autor autor = new Autor(); // INSTANCIA AUTOR().
-	@Override
-	public Object getAsObject(FacesContext context, UIComponent component, String id) {		
-		if(id == null || id.trim().isEmpty()) return null; // VAZIO RETORNA NULL
-		autor.setId(Integer.valueOf(id)); // RETORNA OBJETO COM O ID ESCOLHIDO NA VIEWER.		
-		return autor;
-	}
-
-	@Override
-	public String getAsString(FacesContext context, UIComponent component, Object autorObect) {		
-		if(autorObect == null) return null;		
-		autor = (Autor) autorObect;		
-		return autor.getId().toString(); //RETORNA STRING CONFORME AUTOR PASSADO POR PARÂMETRO
+- Fazer entrada do arquivo do arquivo na Aplicação, pelo caminho Path passado por parâmetro.
+public static void transfer(Path source, OutputStream outputStream) {
+	try {
+		FileInputStream input = new FileInputStream(source.toFile());
+	} catch (FileNotFoundException e) {
+		throw new RuntimeException(e);
 	}
 }
 
-- Criar hashcode e equals na classe Autor, para ser utilizado pelo conversor, na hora da convesão.
-@Override
-public int hashCode() {
-	final int prime = 31;
-	int result = 1;
-	result = prime * result + ((id == null) ? 0 : id.hashCode());
-	return result;
+- Criar canais de entrada e saída desse arquivos do arquivo no servidor(source) para saída(outputStream)
+
+* Canal de entrada.
+try(
+	ReadableByteChannel inpuChannel = Channels.newChannel(input);){
+
+	} catch (IOException e) {
+		throw new RuntimeException(e);
+}
+Desse forma cria o canal e o próprui try já fecha o recurso.
+
+* Canal de saída
+try(
+	ReadableByteChannel inputChannel = Channels.newChannel(input);
+	WritableByteChannel outputChannel = Channels.newChannel(outputStream)
+    ){		   
+} catch (IOException e) {
+	throw new RuntimeException(e);
 }
 
-@Override
-public boolean equals(Object obj) {
-	if (this == obj)
-		return true;
-	if (obj == null)
-		return false;
-	if (getClass() != obj.getClass())
-		return false;
-	Autor other = (Autor) obj;
-	if (id == null) {
-		if (other.id != null)
-			return false;
-	} else if (!id.equals(other.id))
-		return false;
-	return true;
+12 - Transferindo o arquivo do servidor para o response
+- Criar um buffer para ler outputStream do canal de entrada e gravar no canal de saída.
+{
+ByteBuffer buffer = ByteBuffer.allocateDirect(1024 *10); // CRIA UM BUFFER DE 10KBYTES
+while(inputChannel.read(buffer) != -1 ) {
+  buffer.flip();                                         //MARCA O BUFFER PARA LER DA POSIÇÃO ZERO.
+  outputChannel.write(buffer);
+  buffer.clear();
 }
 
-- Altera a JSP para utilziar o conversor criado e não mais utiilizar id e sim o objeto autor.
+- Adicionar a chamada do método: FileSaver.transfer(source, resp.getOutputStream()); na classe FileServlet
 
-<div>
-<h:outputLabel value="Autores"/> //NOME DO CAMPO EXIBIDO NA TELA
-<h:selectManyListbox             // TIPO DO CAMPO
-	value="#{adminLivrosBean.livro.autores}" // RECEBE LISTA AUTORES SELECIONADO.
-	converter="autorConverter" id="autores">  // CONVERSOR UTILZADO.
-	<f:selectItems value="#{adminLivrosBean.autores}" // ITERA SOBRE UMA LISTA DE AUTORES VINDA DO MANAGERBEAN.
-	               var="autor"   //RESEBE CADA AUTOR DA ITERAÇÃO
-	               itemLabel="#{autor.nome}"/> //MOSTRA NOME DO AUTOR.
-</h:selectManyListbox>
-</div>
+13 - Exibindo a Capa do Livro na Listagem
+<h:column>
+	<f:facet name="header">Capa</f:facet>
+	<a href="#{request.contextPath}/file/#{livro.capaPath}">
+		<img src="#{request.contextPath}/file/#{livro.capaPath}"  
+			 height="30%" alt="#{livro.titulo}"/>
+    </a>		
+</h:column>
 
+ 14 Conteúdo da aula.
 
-
-09 - Analisando o Converter de Autor
-
-O que ganhamos criando o converter de Autor? (Selecione todas as opções aplicáveis)
-
-Ganhamos flexibilidade na tela, fazendo com que componentes conheçam direto o objeto Autor, também mais semântica, uma vez que nosso sistema trabalha diretamente com objetos Autor e não mais com inteiros e temos um converter próprio, que já preenche a lista com instâncias de objetos Autor, colocando o ID do Autor selecionado no objeto. Assim, temos uma aplicação mais esperta e não temos que tratar listas de Integers.
-
-
-
-
-
+Enviado projeto funcionando para o git.
 
 
 

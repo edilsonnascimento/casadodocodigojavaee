@@ -10,15 +10,15 @@ import br.com.casadocodigo.loja.models.Autor;
 @FacesConverter("autorConverter")
 public class AutorConverter implements Converter{
 	
-	private Autor autor = new Autor();
+
 
 	@Override
 	public Object getAsObject(FacesContext context, UIComponent component, String id) {
 		
 		if(id == null || id.trim().isEmpty()) return null;
-
-		autor.setId(Integer.valueOf(id));
 		
+		Autor autor = new Autor();
+		autor.setId(Integer.valueOf(id));		
 		return autor;
 	}
 
@@ -27,8 +27,7 @@ public class AutorConverter implements Converter{
 		
 		if(autorObect == null) return null;
 		
-		autor = (Autor) autorObect;
-		
+		Autor autor = (Autor) autorObect;		
 		return autor.getId().toString();
 	}
 

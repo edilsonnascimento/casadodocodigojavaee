@@ -6,31 +6,39 @@
 	xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
 
 
-	<h:messages />
-	
-	<h:dataTable var="livro" value="#{adminListaLivroBean.livros}">
-		<h:column>
-			<f:facet name="header">TITULO</f:facet>
+<h:messages />
+
+<h:dataTable var="livro" value="#{adminListaLivroBean.livros}">
+	<h:column>
+		<f:facet name="header">TITULO</f:facet>
 			#{livro.titulo}
 		</h:column>
-		<h:column>
-			<f:facet name="header">DESCRICAO</f:facet>
+	<h:column>
+		<f:facet name="header">DESCRICAO</f:facet>
 			#{livro.descricao}
 		</h:column>
-		<h:column>
-			<f:facet name="header">PAGINAS</f:facet>
+	<h:column>
+		<f:facet name="header">PAGINAS</f:facet>
 			#{livro.numeroPaginas}
 		</h:column>
-		<h:column>
-			<f:facet name="header">PREÇO</f:facet>
+	<h:column>
+		<f:facet name="header">PREÇO</f:facet>
 			#{livro.preco}
 		</h:column>
-        <h:column>
-            <f:facet name="header">AUTORES</f:facet>
-            <ui:repeat value="#{livro.autores}" var="autor">
+	<h:column>
+		<f:facet name="header">AUTORES</f:facet>
+		<ui:repeat value="#{livro.autores}" var="autor">
                 #{autor.nome},
             </ui:repeat>
-        </h:column>		
-	</h:dataTable>
+	</h:column>
+	<h:column>
+		<f:facet name="header">Capa</f:facet>
+		<a href="#{request.contextPath}/file/#{livro.capaPath}">
+			<img src="#{request.contextPath}/file/#{livro.capaPath}"  
+				 height="30%" alt="#{livro.titulo}"/>
+	    </a>
+		
+	</h:column>
+</h:dataTable>
 
 </html>
