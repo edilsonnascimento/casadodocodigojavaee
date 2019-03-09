@@ -1,332 +1,160 @@
-05 -  Adicionando e Exibindo a Capa do Livro
+06 - Criando a Home e o Detalhe do Livro
+
+01 - Adicionando a Home Page da CDC
+
+- Adicionado ao projeto um novo index, com a os tamplaites da Casa do Código da Caelum.
+- Adicionado as tags abaixo ara listar os veículos on JSP
+- Criado um novo Bean para atender essa nova home.xhtml(JSP).
+- Adicionado no DAO Listas de livros para exibir na nova Home.
+- E exibir as imagens.
+
+02 - Baixando a home da Casa do Código
+
+- Baixado zip do link https://s3.amazonaws.com/caelum-online-public/java-ee-webapp/casadocodigo-javaee-home.zip
+- Importado para o projeto no diretorio de WEBAPP
+
+03 - Editando a Home - Colocando os últimos lançamentos
+<ui:repeat value="#{homeBean.ultimosLancamentos()}" var="livro">
+<li class="livroNaVitrine vitrineDestaquinho-produto">
+	<a href="https://www.casadocodigo.com.br/products/livro-certificacao-java-associate" class="livroNaVitrine-link"
+			title="#{livro.titulo}">
+		<div class="livroNaVitrine-imagemContainer" role="presentation">
+			<img class="livroNaVitrine-imagem" 
+				src="#{request.contextPath}/file/#{livro.capaPath}" 
+					alt="#{livro.titulo}" title="#{livro.titulo}" />
+		</div>
+		<span class="livroNaVitrine-nome">#{livro.titulo}</span>
+	</a>
+</li>
+</ui:repeat>
+
+04 - Editando a Home - Adicionando os demais livros
+<ui:repeat var="livro" value="#{homeBean.demaisLivros()}">
+<li class="livroNaVitrine vitrineDaColecao-produto">
+	<a href="https://www.casadocodigo.com.br/products/livro-certificacao-java-associate" class="livroNaVitrine-link" 
+		title="#{livro.titulo}">
+		<div class="livroNaVitrine-imagemContainer" role="presentation">
+			<img class="livroNaVitrine-imagem" src="#{request.contextPath}/file/#{livro.capaPath}" 
+				alt="#{livro.titulo}" title="#{livro.titulo}" />
+		</div>
+		<span class="livroNaVitrine-nome">#{livro.titulo}</span>
+	</a>
+</li>
+</ui:repeat>
 
 
-01 - Salvando a Imagem no Servidor
-Salvando qualquer tipo de arquivo.
-
-- Criado campo no JSF, viwer, para enviar arquivo para o servidor.
-
-	<div>
-		<h:outputLabel value="Capa do Livro" />
-		<h:inputFile value="#{adminLivrosBean.capaLivro}" id="capaLivro" />
-		<h:message for="capaLivro" />
-	</div>
-- Adicionado o tipo de arquivo que está sendo enviado no request
-
-<h:form enctype="multipart/form-data">
-
-- Criado o campo capaLivo no MannagerBean, do tipo Part(aqruivo do Javaee 7)
-	private Part capaLivro;
-
-- Gravado arquivo em disco, pelo comando write
-	capaLivro.write("/home/edilson/workspace/casadodocodigojavaee/documentos/" + capaLivro.getSubmittedFileName());
-
-
-02 - Criando o campo para seleção de arquivo
-
-<h:form enctype="multipart/form-data">
-    <!-- Os demais campos continuam aqui! -->
-    <div>
-        <h:outputLabel value="Capa do Livro" />
-        <h:inputFile value="#{adminLivrosBean.capaLivro}" id="capaLivro" />
-        <h:message for="capaLivro" />
-    </div>
-    <h:commandButton value="Cadastrar" action="#{adminLivrosBean.salvar}" />
-</h:form>
-
-
-03 - Enviando arquivos no JavaEE 
-Como ficou facilitado o upload de arquivos no JavaEE 7?
-
-Através do componente <h:inputFile> no JSF e do objeto Part que já encapsula a complexidade de receber o arquivo e transferi-lo para o disco. Agora ficou muito mais simples, bastando apenas chamar o método write() do objeto Part.
-
-04 - Recebendo o arquivo no Bean e salvando no disco
-
-import javax.servlet.http.Part;
-public class AdminLivrosBean {	
-	private Livro livro = new Livro();	
+05-Criando o Bean da Home
+@Model
+public class HomeBean {
 	@Inject
-	private LivroDAO livroDao;	
-	@Inject
-	private AutorDAO autorDao;
-	@Inject
-	private FacesContext context;	
-	private Part capaLivro;	
-	public String adiciona() throws IOException {
-		livroDao.salvar(livro);		
-		capaLivro.write("/home/edilson/workspace/casadodocodigojavaee/documentos/" + capaLivro.getSubmittedFileName());
+	private LivroDAO livroDAO;	
+	public List<Livro> ultimosLancamentos() {
+		return livroDAO.cincoUltimosPublicados();
+	}	
+	public List<Livro> demaisLivros(){
+		return livroDAO.demaisLivros();
+	}
+}
+
+
+06 - Alterando o LivroDao para a Home
+@Stateless
+public class LivroDAO {	
 //...
+	public List<Livro> cincoUltimosPublicados() {
+		return manager.createQuery("SELECT l FROM Livro l ORDER BY l.dataPublicacao DESC", Livro.class)
+				      .setMaxResults(5)
+				      .getResultList();
+	}
+	public List<Livro> demaisLivros() {
+		return manager.createQuery("SELECT l FROM Livro l", Livro.class)
+				      .setFirstResult(5)
+				      .getResultList();
+	}
 }
+
+
+07 - Criando o Detalhe do Livro
+
+- Importar arquivo com o detalhe de livro do link: https://s3.amazonaws.com/caelum-online-public/java-ee-webapp/casadocodigo-javaee-detalhe.zip.
+- Criar no ManagedBean para controlar esse novo JSP.
+- Criar método que recebe um ID e retorna um objeto livro para ser exibido na tela detalhe.
+
+08 - Adicionando a página de detalhe do Livro
+- Baixado arquivo e adicionado ao projeto.
+
+09 - Carregando os detalhes do Livro
+Ao final das alterações, seu código deve ficar assim:
+
+Chamando os métodos via GET, pega os parâmetros do browser. 
+http://localhost:8080/casadocodigo/detalhe-livro.xhtml?id=9
+<f:metadata>
+    <f:viewParam id="id" name="id" value="#{livroDetalheBean.id}"/> // CARREGA ANTES DE INICIAR O JSP.
+    <f:viewAction action="#{livroDetalheBean.carregarDetalhe()}"/>
+</f:metadata>
+
+
+10 - Carregando os Autores do Livro
+
+- Alterado DAO para carregar os livros com os autores.
+public Livro buscaPorId(Integer id) {
+	return manager.createQuery("SELECT l FROM Livro l JOIN FETCH l.autores"
+			                 + " WHERE l.id = :id", Livro.class)
+			      .setParameter("id", id)
+			      .getSingleResult();
+}
+
+- ALterar a viwer para mostrar a capa dos livros e a página.
+
+
+11 - Carregando Livro com Autores
+O que são Planned Queries e porque usá-las em nossos sistemas?
+
+Planned Queries são queries em cuja construção trazemos o objeto principal, além dos relacionamentos diretos que vamos usar junto do objeto principal. Assim evitamos idas desnecessárias ao banco, o que chamávamos Lazy.
+
+
+12- Usando o Extended Entity Manager
+
+Uma forma de resolver a lazy com notações do EJB
+
+@Stateful
+public class LivroDAO {
+
+@PersistenceContext(type=PersistenceContextType.EXTENDED)
+pri
 //...
-	public Part getCapaLivro() {
-		return capaLivro;
-	}
-	public void setCapaLivro(Part capaLivro) {
-		this.capaLivro = capaLivro;
-	}
-}
-
-05 - Salvando o Path da Capa do Livro
-Criar uma classe de infrainstrutura que salve os arquivos no banco de dados. e apenas retorne o caminho para ser salvo no Livro.
-
-06 - Alterando o Livro para salvar a capa
-
-- Criar campo capaPath para armazenar o caminho onde o arquivo será salvo
-
-@Entity
-public class Livro {
-	//...
-	private String capaPath;
-	//...
-	public String getCapaPath() {
-		return capaPath;
-	}
-
-	public void setCapaPath(String capaPath) {
-		this.capaPath = capaPath;
-	}
-}
-
-07 - Recebendo o arquivo no AdminLivrosBean
-Recebe na variável capaLivro e armazena em disco pelo camando wirite, ter um infraestrutura que armane esse arquivo no servidor.
-FileSaver fileSaver = new FileSaver();
-livro.setCapaPath(fileSaver.write(capaLivro, "docuementos"));
+public Livro buscaPorId(Integer id) {
+	return manager.find(Livro.class, id);
+}	
 
 
-08 - Criando o método write do FileSaver
-Criar arquivo de infra estrutura para gravar arquivo no servidor e retonar o path de onde o arquivo foi salvo.
-public class FileSaver {
-	
-	private static final String SERVER_PATH = "/home/edilson/workspace/casadodocodigojavaee/";	
-	public String write(Part arquivo, String path) {
-		String relativePath = path + "/" + arquivo.getSubmittedFileName();
-		try {
-			arquivo.write(SERVER_PATH + relativePath);			
-			return relativePath;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-}
+13 - Carregando o Livro e evitando LazyInitializationException
 
+@Stateful
+public class LivroDAO {
 
-09 - Obtendo a Capa do FileSystem
-
-Criar uma Classe que acesse o arquivo no servidor, pelo Servilet, atendo as requisições, request de uma url 
-http://algma cosia/file/caminho + nome do arquivo.
-
-10 - Criando coluna para a Capa do Livro
-Coluna que mostra uma imagem tendo como fonte(scr) a classe request.
-<h:column>
-	<f:facet name="header">Capa</f:facet>
-	<img src="#{request.contextPath}/file/#{livro.capaPath}" 
-			  height="30%" alt="#{livro.titulo}"/>
-</h:column>
-
-11 - Criando o Servlet de File
-
-1 - Criar uma classe FileServlet que herde de HttpServlet.
-public class FileServlet extends HttpServlet{
-}
-
-2 - Sobrescrever o método service
-public class FileServlet extends HttpServlet{
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException 	}
-}
-
-3 - Anotar a classe com WebServlet e leia as request de "file"
-
-@WebServlet("/file/*")
-public class FileServlet extends HttpServlet{
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-	}
-}
-
-4 - Pegue o nome e diretório onde está o arquivo recebido pela request.
-
-Utilizar o métod getRequestURI() do req vindo por parâmetro, que quebra a request em um array pelo "/file/" e retorna o [1], parte posição a diretia do arraqui.
-Exemplo: request http://localhost:8080/casadocodigo/file/documentos/BigData.png
-split = [ http://localhost:8080/casadocodigo, /file/, documentos/BigData.png ]
-path = documentos/BigData.png
-
-@WebServlet("/file/*")
-public class FileServlet extends HttpServlet{
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
-		String path = req.getRequestURI().split("/file/")[1];
-	}
-}
-
-5 - Setar parâmetros do browser para exibir arquivos.
-
-# Um dos parâmetros é o ContetType para isso deve:
-
-- Cria a fonte(source) com o caminho real do arquivo no servidor.
-
-@WebServlet("/file/*")
-public class FileServlet extends HttpServlet{
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		String path = req.getRequestURI().split("/file/")[1];		
-		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
-	}
-}
-
-- Instanciar o FileNameMap, para coletar as informações do arquivo.
-@WebServlet("/file/*")
-public class FileServlet extends HttpServlet{
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
-		String path = req.getRequestURI().split("/file/")[1];		
-		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
-		FileNameMap fileNameMap = URLConnection.getFileNameMap(); 
-	}
-}
-
-- Coletar o contentType do aruivo pela classe FileNameMap.
-@WebServlet("/file/*")
-public class FileServlet extends HttpServlet{
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
-		String path = req.getRequestURI().split("/file/")[1];		
-		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
-		FileNameMap fileNameMap = URLConnection.getFileNameMap();
-		String contentTypeFor = fileNameMap.getContentTypeFor("file:" + source);
-	}
-}
-
-- Setar o contentType
-@WebServlet("/file/*")
-public class FileServlet extends HttpServlet{
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
-		String path = req.getRequestURI().split("/file/")[1];		
-		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
-		FileNameMap fileNameMap = URLConnection.getFileNameMap();
-		String contentTypeFor = fileNameMap.getContentTypeFor("file:" + source);
-
-		resp.setContentType(contentTypeFor);
-	}
-}
-
-# Setar o Header com o tamanho do arquivo
-@WebServlet("/file/*")
-public class FileServlet extends HttpServlet{
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
-		String path = req.getRequestURI().split("/file/")[1];		
-		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
-		FileNameMap fileNameMap = URLConnection.getFileNameMap();
-		String contentTypeFor = fileNameMap.getContentTypeFor("file:" + source);
-
-		resp.setContentType(contentTypeFor);
-		resp.setHeader("Content-Length", String.valueOf(Files.size(source)));
-	}
-}
-
-# Setar o Header com o nome do arquivo que será exibido.
-@WebServlet("/file/*")
-public class FileServlet extends HttpServlet{
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
-		String path = req.getRequestURI().split("/file/")[1];		
-		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
-		FileNameMap fileNameMap = URLConnection.getFileNameMap();
-		String contentTypeFor = fileNameMap.getContentTypeFor("file:" + source);
-
-		resp.setContentType(contentTypeFor);
-		resp.setHeader("Content-Length", String.valueOf(Files.size(source)));
-		resp.setHeader("Content-Disposition", "filename=\""+source.getFileName().toString() + "\"");
-	}
-}
-
-# Restar o response para ter serteza que ele não tem nem uma informação anterior.
-@WebServlet("/file/*")
-public class FileServlet extends HttpServlet{
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
-		String path = req.getRequestURI().split("/file/")[1];		
-		Path source = Paths.get(FileSaver.SERVER_PATH + "/" + path);
-		FileNameMap fileNameMap = URLConnection.getFileNameMap();
-		String contentTypeFor = fileNameMap.getContentTypeFor("file:" + source);
-
-		resp.reset();
-		resp.setContentType(contentTypeFor);
-		resp.setHeader("Content-Length", String.valueOf(Files.size(source)));
-		resp.setHeader("Content-Disposition", "filename=\""+source.getFileName().toString() + "\"");
-	}
-}
-
-# Criar método transfer() na classe FileSaver.
-Esse método é resposável por transferir arquivos do Servidor para o browser do cliente.
-
-- Recebe por parâmetro o caminho do arquivo no servidor(Path) e a saída para o browser OutputStream). 
-
-public class FileSaver {
+@PersistenceContext(type=PersistenceContextType.EXTENDED)
+pri
 //...
-public static void transfer(Path source, OutputStream outputStream) {
-		
-	}
-}
+public Livro buscaPorId(Integer id) {
+	return manager.find(Livro.class, id);
+}	
 
-- Fazer entrada do arquivo do arquivo na Aplicação, pelo caminho Path passado por parâmetro.
-public static void transfer(Path source, OutputStream outputStream) {
-	try {
-		FileInputStream input = new FileInputStream(source.toFile());
-	} catch (FileNotFoundException e) {
-		throw new RuntimeException(e);
-	}
-}
+14 - Projeto Final
+https://github.com/alura-cursos/java-ee-webapp/archive/f934f7f0f46f88beb5fa31b8ff0fe5daf53bd9ce.zip
 
-- Criar canais de entrada e saída desse arquivos do arquivo no servidor(source) para saída(outputStream)
 
-* Canal de entrada.
-try(
-	ReadableByteChannel inpuChannel = Channels.newChannel(input);){
-
-	} catch (IOException e) {
-		throw new RuntimeException(e);
-}
-Desse forma cria o canal e o próprui try já fecha o recurso.
-
-* Canal de saída
-try(
-	ReadableByteChannel inputChannel = Channels.newChannel(input);
-	WritableByteChannel outputChannel = Channels.newChannel(outputStream)
-    ){		   
-} catch (IOException e) {
-	throw new RuntimeException(e);
-}
-
-12 - Transferindo o arquivo do servidor para o response
-- Criar um buffer para ler outputStream do canal de entrada e gravar no canal de saída.
-{
-ByteBuffer buffer = ByteBuffer.allocateDirect(1024 *10); // CRIA UM BUFFER DE 10KBYTES
-while(inputChannel.read(buffer) != -1 ) {
-  buffer.flip();                                         //MARCA O BUFFER PARA LER DA POSIÇÃO ZERO.
-  outputChannel.write(buffer);
-  buffer.clear();
-}
-
-- Adicionar a chamada do método: FileSaver.transfer(source, resp.getOutputStream()); na classe FileServlet
-
-13 - Exibindo a Capa do Livro na Listagem
-<h:column>
-	<f:facet name="header">Capa</f:facet>
-	<a href="#{request.contextPath}/file/#{livro.capaPath}">
-		<img src="#{request.contextPath}/file/#{livro.capaPath}"  
-			 height="30%" alt="#{livro.titulo}"/>
-    </a>		
-</h:column>
-
- 14 Conteúdo da aula.
-
-Enviado projeto funcionando para o git.
+15 – Conclusão
+Parte dois curso.
 
 
 
 
 
 
+
+
+
+
+
+06 - Criando a Home e o Detalhe do Livro
