@@ -1,0 +1,61 @@
+01 - Melhorando a UX da Administração
+
+- Será continuado o projeto do curso anterior, parte 1.
+- Cache, Serviços Rest, mais de CDI e também mais de JSF e JPA, dentre outras bibliotecas que se integrarão as especificações que já estamos usando.
+
+
+02 - Melhorando nossa Área Administrativa
+
+- Adicionado bootstrap ao projeto.
+- Utilizado bootstrap no formulário e na lista de livros.
+
+03 - Estilizando o Formulário
+- Adicionado class do bootstrap
+- styleClass="form-control"> para os inputs
+- class="form-group"> para as <divs
+
+04 - Adicionando Menu de Navegação
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+  <a class="navbar-brand" href="#">Casa do Código</a>
+  <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="#">Lista <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Cadastro</a>
+      </li>
+    </ul>
+    <form class="form-inline my-2 my-lg-0">
+      <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search" />
+      <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
+    </form>
+  </div>
+</nav>
+
+- Adicionado style para dar espaço no inicio e fim dos campos do formulário
+<h:outputStylesheet library="css" name="style-admin.css" /> 
+
+body {
+    padding-top: 80px;
+    padding-bottom: 20px;
+}
+
+05 - Baixando e Adicionando o Bootstrap ao Projeto
+Feito no exercicio 01.
+
+06 - Melhorando a Lista e o Formulário
+Melhorado no exercicio 01.
+
+07 - Usando Bootstrap
+
+Qual a vantagem que temos ao usar Bootstrap?
+
+Com o bootstrap ganhamos um layout pronto e reaproveitável para nosso sistema, fazendo o mínimo de esforço possível e sem que precisemos, para isso, conhecer a fundo sobre CSS e HTML.
+
+
+08 - Trabalhando os Campos do Formulário
+
+
+
